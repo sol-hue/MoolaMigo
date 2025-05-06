@@ -1,21 +1,34 @@
 package com.solidad.moolamigo.ui.screens.transaction
 
 import android.app.Application
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -46,7 +59,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import kotlinx.coroutines.launch
 
-// 1. Data Entity
 @Entity(tableName = "transactions")
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
@@ -54,7 +66,6 @@ data class TransactionEntity(
     val amount: Double
 )
 
-// 2. DAO
 @Dao
 interface TransactionDao {
     @Insert
@@ -63,11 +74,18 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions")
     fun getAll(): LiveData<List<TransactionEntity>>
 
+    @Query("SELECT category, SUM(amount) as total FROM transactions GROUP BY category")
+    fun getAmountByCategory(): LiveData<List<CategoryTotal>>
+
     @Query("SELECT SUM(amount) FROM transactions")
     fun getTotalAmount(): LiveData<Double?>
 }
 
-// 3. Room Database
+data class CategoryTotal(
+    val category: String,
+    val total: Double
+)
+
 @Database(entities = [TransactionEntity::class], version = 1)
 abstract class TransactionDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
@@ -87,11 +105,11 @@ abstract class TransactionDatabase : RoomDatabase() {
     }
 }
 
-// 4. ViewModel
 class TransactionViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = TransactionDatabase.getDatabase(application).transactionDao()
     val transactions = dao.getAll()
     val total = dao.getTotalAmount()
+    val categoryTotals = dao.getAmountByCategory()
 
     fun addTransaction(category: String, amount: Double) {
         viewModelScope.launch {
@@ -100,6 +118,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionScreen(navController: NavController) {
     val context = LocalContext.current
@@ -115,66 +134,105 @@ fun TransactionScreen(navController: NavController) {
 
     val transactions by viewModel.transactions.observeAsState(emptyList())
     val total by viewModel.total.observeAsState(0.0)
+    val categoryTotals by viewModel.categoryTotals.observeAsState(emptyList())
 
-    Column(Modifier.padding(16.dp)) {
-        Text(text = "Add Transaction", style = MaterialTheme.typography.titleLarge)
+    val mintGreen = Color(0xFF98FF98)
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = amount,
-            onValueChange = { amount = it },
-            label = { Text("Amount") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text("Select a Category", style = MaterialTheme.typography.bodyMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Visual Category Buttons
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            categories.forEach { category ->
-                val isSelected = selectedCategory == category
-                Button(
-                    onClick = { selectedCategory = category },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray,
-                        contentColor = if (isSelected) Color.White else Color.Black
-                    ),
-                    shape = RoundedCornerShape(50),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(category)
-                }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("MoolaMigo", style = MaterialTheme.typography.titleLarge) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = mintGreen)
+            )
+        },
+        bottomBar = {
+            NavigationBar(containerColor = mintGreen) {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    selected = true,
+                    onClick = {}
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.List, contentDescription = "Transactions") },
+                    selected = false,
+                    onClick = {}
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                    selected = false,
+                    onClick = {}
+                )
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                val amt = amount.toDoubleOrNull()
-                if (amt != null && selectedCategory.isNotBlank()) {
-                    viewModel.addTransaction(selectedCategory, amt)
-                    amount = ""
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize()
+                .background(Color.White)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Save Transaction")
-        }
+            Text("Add Transaction", style = MaterialTheme.typography.headlineSmall)
 
-        Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = amount,
+                onValueChange = { amount = it },
+                label = { Text("Amount") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
 
-        Text("Total Spent: $${String.format("%.2f", total)}", style = MaterialTheme.typography.titleMedium)
+            Text("Select a Category", style = MaterialTheme.typography.bodyLarge)
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                categories.forEach { category ->
+                    val isSelected = selectedCategory == category
+                    Button(
+                        onClick = { selectedCategory = category },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSelected) mintGreen else Color.LightGray,
+                            contentColor = if (isSelected) Color.Black else Color.DarkGray
+                        ),
+                        shape = RoundedCornerShape(50),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(category)
+                    }
+                }
+            }
 
-        transactions.forEach {
-            Text("- ${it.category}: $${it.amount}", style = MaterialTheme.typography.bodyMedium)
+            Button(
+                onClick = {
+                    val amt = amount.toDoubleOrNull()
+                    if (amt != null && selectedCategory.isNotBlank()) {
+                        viewModel.addTransaction(selectedCategory, amt)
+                        amount = ""
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = mintGreen),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Save Transaction")
+            }
+
+            Text("Total Spent: Ksh.${String.format("%.2f", total)}", style = MaterialTheme.typography.titleMedium)
+
+            Text("Spending by Category:", style = MaterialTheme.typography.titleMedium)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                categoryTotals.forEach {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(it.category, style = MaterialTheme.typography.bodyMedium)
+                        Text("Ksh.${String.format("%.2f", it.total)}", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
         }
     }
 }
