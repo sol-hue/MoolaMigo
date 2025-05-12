@@ -30,12 +30,13 @@ fun AboutScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background((newgreen))
-            .padding(24.dp),
+            .padding(horizontal = 10.dp, vertical = 100.dp) ,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         // App Icon or Mascot
         Icon(
-            painter = painterResource(id = R.drawable.coin2),
+            painter = painterResource(id = R.drawable.img),
             contentDescription = "MoolaMigo Mascot",
             tint = Color.Unspecified,
             modifier = Modifier.size(100.dp)

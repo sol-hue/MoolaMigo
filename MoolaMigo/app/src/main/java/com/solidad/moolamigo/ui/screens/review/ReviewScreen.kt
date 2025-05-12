@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,10 +40,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.solidad.moolamigo.navigation.ROUT_HOME
 import com.solidad.moolamigo.navigation.ROUT_PROFILE
-import com.solidad.moolamigo.navigation.ROUT_REVIEW
 import com.solidad.moolamigo.ui.theme.MoolaMigoTheme
+import com.solidad.moolamigo.ui.theme.newblue
 import com.solidad.moolamigo.ui.theme.newgreen
+import com.solidad.moolamigo.ui.theme.newgreen1
+import com.solidad.moolamigo.ui.theme.newred
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +63,7 @@ fun ReviewScreen(navController: NavController) {
             TopAppBar(
                 title = { Text("MoolaMigo Review") },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle back/nav */ }) {
+                    IconButton(onClick = { ROUT_HOME }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
 
                     }
@@ -83,31 +84,6 @@ fun ReviewScreen(navController: NavController) {
             ) {
 
                 var selectedIndex: Int? = null
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.List, contentDescription = "Favorites") },
-                    label = { Text("Review") },
-                    selected = selectedIndex == 1,
-                    onClick = {
-                        var selectedIndex = 1
-                        navController.navigate(ROUT_REVIEW)
-                    }
-                )
-
-
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Favorites") },
-                    label = { Text("Favorites") },
-                    selected = selectedIndex == 1,
-                    onClick = {
-                        selectedIndex = 1
-                        // navController.navigate(ROUT_HOME)
-                    }
-                )
-
-
-
-
-
 
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
@@ -144,11 +120,11 @@ fun ReviewScreen(navController: NavController) {
             // Pie Chart
             Text(
                 text = "Spending Breakdown",
-                fontSize = 20.sp,
+                fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(15.dp)
             )
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             PieChart(categoryTotals)
         }
@@ -157,14 +133,14 @@ fun ReviewScreen(navController: NavController) {
 
 @Composable
 fun PieChart(data: Map<String, Float>) {
-    val colors = listOf(Color.Blue, Color.Red, Color.Green)
+    val colors = listOf(newblue, newred, newgreen1)
     val total = data.values.sum()
     var startAngle = 0f
 
     Canvas(
         modifier = Modifier
-            .size(200.dp)
-            .padding(8.dp)
+            .size(250.dp)
+            .padding(20.dp)
     ) {
         data.values.forEachIndexed { index, value ->
             val sweepAngle = (value / total) * 360f
@@ -173,13 +149,13 @@ fun PieChart(data: Map<String, Float>) {
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
                 useCenter = true,
-                topLeft = Offset(0f, 0f),
+                topLeft = Offset(150f, 50f),
                 size = Size(size.width, size.height)
             )
             startAngle += sweepAngle
         }
     }
-
+Spacer(modifier = Modifier.height(50.dp))
     // Legend
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -189,8 +165,8 @@ fun PieChart(data: Map<String, Float>) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(12.dp)
-                        .padding(end = 4.dp)
+                        .size(20.dp)
+                        .padding(end = 6.dp)
                         .background(colors[index % colors.size])
                 )
                 Text(label, style = MaterialTheme.typography.bodySmall)
