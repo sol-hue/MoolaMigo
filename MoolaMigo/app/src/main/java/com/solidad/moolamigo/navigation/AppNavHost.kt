@@ -1,6 +1,5 @@
 package com.solidad.moolamigo.navigation
 
-import GoalScreen
 import RegisterScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,7 +14,12 @@ import com.solidad.moolamigo.ui.screens.about.AboutScreen
 import com.solidad.moolamigo.ui.screens.auth.LoginScreen
 import com.solidad.moolamigo.ui.screens.contact.ContactScreen
 import com.solidad.moolamigo.ui.screens.home.HomeScreen
+import com.solidad.moolamigo.ui.screens.home.ProfileScreen
+import com.solidad.moolamigo.ui.screens.incomeandexpendicture.IncomeandExpenditureScreen
+import com.solidad.moolamigo.ui.screens.manage.ReviewScreen
+import com.solidad.moolamigo.ui.screens.profile.EditprofileScreen
 import com.solidad.moolamigo.ui.screens.splash.SplashScreen
+import com.solidad.moolamigo.ui.screens.transaction.GoalScreen
 import com.solidad.moolamigo.ui.screens.transaction.TransactionScreen
 import com.solidad.moolamigo.viewmodel.AuthViewModel
 
@@ -23,7 +27,7 @@ import com.solidad.moolamigo.viewmodel.AuthViewModel
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = ROUT_GOAL
+    startDestination: String = ROUT_HOME
 ) {
     val context = LocalContext.current
 
@@ -57,6 +61,24 @@ fun AppNavHost(
            GoalScreen(navController)
         }
 
+        composable(ROUT_INCOME) {
+            IncomeandExpenditureScreen(navController)
+        }
+        composable(ROUT_PROFILE) {
+            ProfileScreen(navController)
+        }
+        composable(ROUT_EDIT) {
+            EditprofileScreen(navController)
+        }
+
+        composable(ROUT_REVIEW) {
+            val context = LocalContext.current
+            ReviewScreen(navController)
+        }
+
+
+
+
 
 
 
@@ -89,8 +111,5 @@ fun AppNavHost(
     }
 }
 
-@Composable
-fun PlaceScreen(x0: NavHostController) {
-    TODO("Not yet implemented")
-}
+
 
