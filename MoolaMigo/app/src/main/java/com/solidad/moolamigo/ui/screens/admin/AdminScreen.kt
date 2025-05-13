@@ -39,7 +39,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.solidad.moolamigo.navigation.ROUT_TRANSACTION
+import com.solidad.moolamigo.navigation.ROUT_BUDGET
+import com.solidad.moolamigo.navigation.ROUT_LOG
+import com.solidad.moolamigo.navigation.ROUT_REPORT
 import com.solidad.moolamigo.navigation.ROUT_USER
 
 
@@ -80,7 +82,7 @@ fun AdminScreen(navController: NavController) {
                 title = {
                     Text(
                         "MoolaMigo Admin",
-                        color = Color.White,
+                        color = Color.Black,
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -118,7 +120,7 @@ fun AdminScreen(navController: NavController) {
                 icon = Icons.Default.AccountCircle,
                 color = MintCardColor
             ) {
-                navController.navigate(ROUT_TRANSACTION)
+                navController.navigate(ROUT_LOG)
             }
 
             AdminOptionCard(
@@ -126,7 +128,7 @@ fun AdminScreen(navController: NavController) {
                 icon = Icons.Default.Menu,
                 color = MintCardColor
             ) {
-                navController.navigate("manage_categories")
+                navController.navigate(ROUT_BUDGET)
             }
 
             AdminOptionCard(
@@ -134,7 +136,7 @@ fun AdminScreen(navController: NavController) {
                 icon = Icons.Default.Star,
                 color = MintCardColor
             ) {
-                navController.navigate("export_reports")
+                navController.navigate(ROUT_REPORT)
             }
         }
     }

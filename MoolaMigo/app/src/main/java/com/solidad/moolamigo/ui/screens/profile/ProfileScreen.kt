@@ -53,10 +53,10 @@ fun ProfileScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Moola Migo", color = Color.White) },
+                title = { Text("Moola Migo", color = Color.Black) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.AccountCircle, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.Default.AccountCircle, contentDescription = "Back", tint = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = newgreen)
@@ -68,7 +68,7 @@ fun ProfileScreen(navController: NavController) {
                 contentColor = Color.White
             ) {
                 IconButton(onClick = { navController.navigate(ROUT_HOME) }) {
-                    Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
+                    Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.Black)
                 }
             }
         },

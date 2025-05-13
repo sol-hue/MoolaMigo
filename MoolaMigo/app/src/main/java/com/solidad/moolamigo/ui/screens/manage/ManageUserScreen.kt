@@ -16,18 +16,18 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -36,32 +36,22 @@ import com.solidad.harakamall.ui.screens.about.MintCardColor
 import com.solidad.harakamall.ui.screens.about.MintGreen
 import com.solidad.harakamall.ui.screens.about.MintGreenDark
 import com.solidad.harakamall.ui.screens.about.User
-import com.solidad.moolamigo.navigation.ROUT_ADMIN
+import com.solidad.moolamigo.ui.theme.newgreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageUsersScreen(viewModel: AdminViewModel, navController: NavController) {
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Manage Users",
-                        color = Color.White,
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                },
+            TopAppBar(
+                title = { Text("Admin Manage Users", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate(ROUT_ADMIN) }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MintGreenDark
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = newgreen
                 )
             )
         },
@@ -111,7 +101,7 @@ fun UserCard(user: User, onDelete: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Delete",
-                tint = Color.Red,
+                tint = Color.Black,
                 modifier = Modifier
                     .size(24.dp)
                     .clickable { onDelete() }
