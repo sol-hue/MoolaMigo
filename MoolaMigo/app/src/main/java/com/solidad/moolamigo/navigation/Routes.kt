@@ -10,6 +10,11 @@ const val ROUT_INCOME= "incomeandexpenditure "
 const val ROUT_PROFILE= "profile "
 const val ROUT_REVIEW= "review"
 const val ROUT_EDIT= "edit"
+const val ROUT_ADMIN= "admin"
+const val ROUT_USER= "manage"
+const val ROUT_BUDGET= "budget"
+const val ROUT_REPORT= "report"
+const val ROUT_LOG= "translog"
 
 
 //Authentication
