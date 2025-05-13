@@ -87,7 +87,7 @@ fun AdminScreen(navController: NavController) {
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MintGreenDark
+                    containerColor = newgreen
                 )
             )
         },
