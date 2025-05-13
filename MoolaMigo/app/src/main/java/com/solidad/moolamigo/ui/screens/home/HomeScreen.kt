@@ -1,5 +1,6 @@
 package com.solidad.moolamigo.ui.screens.home
 
+import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,24 +10,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,32 +43,120 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.solidad.moolamigo.navigation.ROUT_ABOUT
+import com.solidad.moolamigo.navigation.ROUT_GOAL
+import com.solidad.moolamigo.navigation.ROUT_INCOME
+import com.solidad.moolamigo.navigation.ROUT_PROFILE
+import com.solidad.moolamigo.navigation.ROUT_REVIEW
 import com.solidad.moolamigo.navigation.ROUT_TRANSACTION
+import com.solidad.moolamigo.ui.theme.newgreen
+import com.solidad.moolamigo.ui.theme.newgreen1
+import kotlinx.coroutines.launch
+
+
+@Entity(tableName = "balance_table")
+data class Balance(
+    @PrimaryKey val id: Int = 1,
+    val amount: Double
+)
+
+
+
+@Dao
+interface BalanceDao {
+    @Query("SELECT * FROM balance_table WHERE id = 1")
+    suspend fun getBalance(): Balance?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateBalance(balance: Balance)
+}
+
+
+
+@Database(entities = [Balance::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun balanceDao(): BalanceDao
+}
+
+
+
+class BalanceViewModel(application: Application) : AndroidViewModel(application) {
+    private val dao: BalanceDao
+
+    var balance by mutableStateOf(0.0)
+        private set
+
+    init {
+        val db = Room.databaseBuilder(
+            application,
+            AppDatabase::class.java,
+            "moolamigo-db"
+        ).build()
+        dao = db.balanceDao()
+
+        viewModelScope.launch {
+            val savedBalance = dao.getBalance()
+            balance = savedBalance?.amount ?: 0.0
+        }
+    }
+
+    fun updateBalance(newAmount: Double) {
+        viewModelScope.launch {
+            dao.insertOrUpdateBalance(Balance(amount = newAmount))
+            balance = newAmount
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, userName: String) {
+fun HomeScreen(navController: NavController, userName: String, viewModel: BalanceViewModel = viewModel()) {
+    val balance = viewModel.balance
+    var isEditing by remember { mutableStateOf(false) }
+    var newBalanceInput by remember { mutableStateOf(balance.toString()) }
+    var selectedIndex by remember { mutableStateOf(0) }
+
+    Button(onClick = {
+        newBalanceInput.toDoubleOrNull()?.let {
+            viewModel.updateBalance(it)
+            isEditing = false
+        }
+    }) {
+        Text("Save")
+    }
 
     // Scaffold
-
-    var selectedIndex by remember { mutableStateOf(0) }
 
     Scaffold(
         // TopBar
         topBar = {
             TopAppBar(
-                title = { Text("Item Screen") },
+                title = { Text("MoolaMigo") },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle back/nav */ }) {
+                    IconButton(onClick = {navController.navigate(ROUT_ABOUT) }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+
                     }
+
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.LightGray,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = newgreen,
+                    titleContentColor = Color.Black,
+                    navigationIconContentColor = Color.Black
                 )
             )
         },
@@ -76,54 +164,45 @@ fun HomeScreen(navController: NavController, userName: String) {
         // BottomBar
         bottomBar = {
             NavigationBar(
-                containerColor = Color.LightGray
+                containerColor = newgreen
             ) {
+
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") },
-                    selected = selectedIndex == 0,
-                    onClick = {
-                        selectedIndex = 0
-                        //navController.navigate(ROUT_HOME)
-                    }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Favorites") },
-                    label = { Text("Favorites") },
+                    icon = { Icon(Icons.Default.Menu, contentDescription = "Favorites") },
+                    label = { Text("Review") },
                     selected = selectedIndex == 1,
                     onClick = {
                         selectedIndex = 1
-                        // navController.navigate(ROUT_HOME)
+                        navController.navigate(ROUT_REVIEW)
                     }
                 )
+
+
+
+
+
+
+
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                     label = { Text("Profile") },
                     selected = selectedIndex == 2,
                     onClick = {
                         selectedIndex = 2
-                        //  navController.navigate(ROUT_HOME)
+                         navController.navigate(ROUT_PROFILE)
                     }
                 )
 
             }
         },
 
-        // FloatingActionButton
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Add action */ },
-                containerColor = Color.LightGray
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
-        },
+
         content = { paddingValues ->
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -132,20 +211,20 @@ fun HomeScreen(navController: NavController, userName: String) {
                 // Main Contents of the page
 
                 Text(
-                    text = "Hello, $userName 👋",
+                    text = "Hello, Solidad 👋",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = newgreen1
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    colors = CardDefaults.cardColors(containerColor = newgreen),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text(
@@ -153,26 +232,72 @@ fun HomeScreen(navController: NavController, userName: String) {
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Ksh.1,250.00",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+
+                        if (isEditing) {
+                            Column {
+                                OutlinedTextField(
+                                    value = newBalanceInput,
+                                    onValueChange = { newBalanceInput = it },
+                                    label = { Text("Enter new balance") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row {
+                                    Button(onClick = {
+                                        newBalanceInput.toDoubleOrNull()?.let {
+                                            viewModel.updateBalance(it)
+                                            isEditing = false
+                                        }
+                                    }) {
+                                        Text("Save")
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Button(onClick = { isEditing = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            }
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Ksh.${String.format("%.2f", balance)}",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Button(
+                                    onClick = { isEditing = true },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                ) {
+                                    Text("Edit", color = MaterialTheme.colorScheme.onSecondary)
+                                }
+                            }
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+
+
+
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                    modifier = Modifier.fillMaxWidth(),
+
+                    ) {
                     DashboardButton("Transactions", navController, ROUT_TRANSACTION)
-                    DashboardButton("Budgets", navController, "budgets_screen")
-                    DashboardButton("Goals", navController, "goals_screen")
+                    DashboardButton("Income", navController, ROUT_INCOME)
+                    DashboardButton("Goals", navController, ROUT_GOAL)
                 }
+
+
 
             }
         }
@@ -188,7 +313,7 @@ fun DashboardButton(label: String, navController: NavController, route: String) 
         onClick = { navController.navigate(route) },
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = newgreen
         ),
         modifier = Modifier
             .height(80.dp)

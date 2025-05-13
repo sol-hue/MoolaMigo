@@ -63,7 +63,7 @@ fun ReviewScreen(navController: NavController) {
             TopAppBar(
                 title = { Text("MoolaMigo Review") },
                 navigationIcon = {
-                    IconButton(onClick = { ROUT_HOME }) {
+                    IconButton(onClick = { navController.navigate(ROUT_HOME) }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
 
                     }
@@ -71,8 +71,8 @@ fun ReviewScreen(navController: NavController) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = newgreen,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    titleContentColor = Color.Black,
+                    navigationIconContentColor = Color.Black
                 )
             )
         },
